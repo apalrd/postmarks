@@ -62,9 +62,6 @@ const hbs = create({
     searchUrl() {
       return `https://${app.get('domain')}/opensearch.xml`;
     },
-    glitchProjectName() {
-      return process.env.PROJECT_DOMAIN;
-    },
     section(name, options) {
       if (!this._sections) this._sections = {};
       this._sections[name] = options.fn(this);
