@@ -36,6 +36,21 @@ app.set('domain', domain);
 
 app.disable('x-powered-by');
 
+// force HTTPS in production
+if (process.env.ENVIRONMENT === 'production') {
+  app.set('trust proxy', ['127.0.0.1', '10.0.0.0/8']);
+
+  app.use(({ secure, hostname, url, port }, response, next) => {
+    if (!secure) {
+      return response.redirect(308, `https://${hostname}${url}${port ? `:${port}` : ''}`);
+    }
+
+    return next();
+  });
+} else {
+  console.log("ENVIRONMENT is not 'production', HTTPS not forced");
+}
+
 const hbs = create({
   helpers: {
     pluralize(number, singular, plural) {
@@ -114,14 +129,4 @@ app.use('/nodeinfo/2.0', routes.nodeinfo);
 app.use('/nodeinfo/2.1', routes.nodeinfo);
 app.use('/opensearch.xml', routes.opensearch);
 
-// Run in production on localhost
-if (process.env.ENVIRONMENT === 'production') {
-  app.set('trust proxy', ['127.0.0.1', '10.0.0.0/8']);
-
-  //Connections from the proxy will come without HTTPS, and the proxy will deal with the redirect
-  console.log("ENVIRONMENT is 'production'");
-  app.listen(PORT, '127.0.0.1', () => console.log(`App listening on port ${PORT}`));
-} else {
-  console.log("ENVIRONMENT is not 'production', HTTPS not forced");
-  app.listen(PORT, () => console.log(`App listening on port ${PORT}`));
-}
+app.listen(PORT, () => console.log(`App listening on port ${PORT}`));
